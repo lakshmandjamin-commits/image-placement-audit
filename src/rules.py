@@ -44,6 +44,7 @@ def check_all(page: CapturedPage, page_type: str) -> list[Violation]:
     for rule_func in [
         check_R1, check_R2, check_R3, check_R4, check_R5,
         check_R6, check_R7, check_R8, check_R9, check_R10, check_R11,
+        check_R12,
     ]:
         violations.extend(rule_func(page, page_type, vh))
     return violations
@@ -288,3 +289,29 @@ def check_R11(page: CapturedPage, page_type: str, vh: int = 720) -> list[Violati
             suggestion="Add at least one wide image (1200px+) to qualify for Google Discover large-image display.",
         )]
     return []
+
+
+def check_R12(page: CapturedPage, page_type: str, vh: int = 720) -> list[Violation]:
+    """R12: Zero images on page (non-blog pages only).
+
+    Blog pages may legitimately have no images (pure informational).
+    Comparison, destination-guide, and review pages without images are
+    missing a critical element per Hypatia's T1/T2 evidence.
+    """
+    if page_type == "blog":
+        return []
+    if page.images:
+        return []
+
+    return [Violation(
+        rule_id="R12",
+        severity="critical",
+        evidence_tier="T1",
+        image_src=None,
+        description=f"Page has zero images. {page_type.title()} pages should have at least one "
+                    "image — hero images drive engagement on destination guides, product images "
+                    "reinforce CTAs on review and comparison pages.",
+        suggestion=f"Add at least one relevant image to this {page_type} page. "
+                   "Destination guide: hero below headline. Review: product image near verdict. "
+                   "Comparison: product images after the comparison table.",
+    )]

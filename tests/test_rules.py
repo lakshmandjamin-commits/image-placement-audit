@@ -1,6 +1,6 @@
 """Tests for rule engine."""
 from src.models import CapturedPage, ImageData
-from src.rules import check_all, check_R1, check_R5, check_R6, check_R9, check_R10, check_R11, _hero_image
+from src.rules import check_all, check_R1, check_R5, check_R6, check_R9, check_R10, check_R11, check_R12, _hero_image
 
 
 def _img(src: str = "img.jpg", **kwargs) -> ImageData:
@@ -161,3 +161,36 @@ class TestCheckAll:
         violations = check_all(page, "blog")
         # Should fire: R6 (missing alt), R8 (small), R9 (no dims), R10 (lazy above fold)
         assert len(violations) >= 4
+
+
+class TestR12:
+    """R12: Zero images on non-blog pages."""
+
+    def test_flags_comparison_page_with_no_images(self):
+        page = _page(images=[], page_type="comparison")
+        violations = check_R12(page, "comparison")
+        assert len(violations) == 1
+        assert violations[0].rule_id == "R12"
+        assert violations[0].severity == "critical"
+        assert "zero images" in violations[0].description.lower()
+
+    def test_flags_destination_guide_with_no_images(self):
+        page = _page(images=[], page_type="destination-guide")
+        violations = check_R12(page, "destination-guide")
+        assert len(violations) == 1
+
+    def test_flags_review_with_no_images(self):
+        page = _page(images=[], page_type="review")
+        violations = check_R12(page, "review")
+        assert len(violations) == 1
+
+    def test_skips_blog_with_no_images(self):
+        """Blog pages can legitimately have no images."""
+        page = _page(images=[], page_type="blog")
+        violations = check_R12(page, "blog")
+        assert len(violations) == 0
+
+    def test_passes_when_images_exist(self):
+        page = _page(images=[_img("hero.jpg")], page_type="comparison")
+        violations = check_R12(page, "comparison")
+        assert len(violations) == 0
