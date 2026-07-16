@@ -1,13 +1,14 @@
 # Image Placement Audit Tool — Agent Handoff
 
 > **For:** Saraswati, Hanumanhermes, Lakshman
-> **Date:** 2026-07-16
+> **Date:** 2026-07-16 (updated 2026-07-16 — R12 added)
 > **Author:** Lakshman (Hermes profile)
 > **Project:** `~/.hermes/profiles/lakshman/home/audit_image_placement/`
+> **Tests:** 36, ruff clean
 
 ## What This Tool Does
 
-Crawls travel affiliate pages, captures every image with live browser geometry, classifies the page type, and flags image placement violations against evidence-based research from Hypatia's `travel-image-strategy-deep-research-2026`.
+Crawls travel affiliate pages, captures every image with live browser geometry, classifies the page type, and flags image placement violations against evidence-based research from Hypatia's `travel-image-strategy-deep-research-2026`. Now covers 12 rules including a critical check for pages with zero images.
 
 **One command gives you a JSON report of every image placement problem on a page.**
 
@@ -16,6 +17,12 @@ Porto home page: 24 images → 22 violations found
   ❌ critical: Hero image above comparison table (hurts conversion)
   ⚠️ major:   Images between headline and first CTA (steals attention)
   ℹ️ minor:   19 small images / missing alt text / missing dimensions
+```
+
+**Also catches what's MISSING:**
+```
+Imageless comparison page: 0 images → 1 critical violation
+  ❌ critical: Page has zero images (R12)
 ```
 
 ## Why This Exists
@@ -100,6 +107,7 @@ URL → Playwright renders page (1280x720 viewport)
 | **R9** | major | Images missing HTML width/height (causes CLS) |
 | **R10** | major | First viewport image lazy-loaded without fetchpriority=high (LCP signal) |
 | **R11** | minor | No image >1200px wide (Google Discover eligibility) |
+| **R12** | critical | Zero images on comparison/destination-guide/review page (blog excluded) |
 
 ### When Rules Skip
 
@@ -251,4 +259,5 @@ The JSON output follows this schema:
 
 ## Changelog
 
+- **2026-07-16 (R12):** Added zero-image detection. Pages with no images on comparison/destination-guide/review types flagged as critical. Blog pages excluded (legitimately imageless). 36 tests.
 - **2026-07-16:** Initial implementation. 7 tasks, 31 tests, 950 source lines. Plan: 5 Claude Opus cycles (final 8/10). Verified on 3 fleet pages.
