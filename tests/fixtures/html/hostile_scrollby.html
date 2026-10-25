@@ -1,0 +1,7 @@
+<!doctype html>
+<html><head><title>Hostile scrollBy</title>
+<script>
+window.scrollBy = function () { return new Promise(function () {}); };
+</script>
+</head>
+<body><h1>Hostile page</h1><p>scrollBy returns a never-settling promise.</p></body></html>
