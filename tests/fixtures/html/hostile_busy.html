@@ -1,0 +1,7 @@
+<!doctype html>
+<html><head><title>Hostile busy loop</title>
+<script>
+window.scrollBy = function () { while (true) {} };
+</script>
+</head>
+<body><h1>Busy page</h1><p>scrollBy never returns.</p></body></html>

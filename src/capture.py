@@ -165,11 +165,28 @@ CAPTURE_JS = """
 """
 
 
+CAPTURE_DEADLINE_S = 60
+
+
 async def capture(url: str, viewport: str = "1280x720") -> CapturedPage:
     """Capture a single page: navigate, render, extract all data.
 
     Returns CapturedPage with status="ok" on success, or status="blocked"/"timeout"/"error".
     """
+    vp_h = int(viewport.split("x")[1])
+    try:
+        return await asyncio.wait_for(_capture(url, viewport), timeout=CAPTURE_DEADLINE_S)
+    except TimeoutError:
+        return CapturedPage(
+            url=url, title="", status="timeout",
+            error=f"Capture exceeded {CAPTURE_DEADLINE_S}s deadline",
+            viewport=viewport, page_text="", images=[],
+            h1_rect=None, tables=[], ctas=[],
+            viewport_height=vp_h, scroll_y=0,
+        )
+
+
+async def _capture(url: str, viewport: str) -> CapturedPage:
     vp_w, vp_h = map(int, viewport.split("x"))
 
     try:
@@ -213,14 +230,14 @@ async def capture(url: str, viewport: str = "1280x720") -> CapturedPage:
 
                 # Scroll to trigger lazy images
                 for _ in range(3):
-                    await page.evaluate(f"window.scrollBy(0, {vp_h})")
+                    await page.evaluate(f"void window.scrollBy(0, {vp_h})")
                     await asyncio.sleep(0.5)
 
                 # Wait for lazy-loaded images
                 await asyncio.sleep(2)
 
                 # Scroll back to top for consistent document coordinates
-                await page.evaluate("window.scrollTo(0, 0)")
+                await page.evaluate("void window.scrollTo(0, 0)")
                 await asyncio.sleep(0.3)
 
                 # Capture all data in one evaluate pass
